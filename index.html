@@ -1,0 +1,865 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EcoGame - Thử Thách Sống Xanh</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen text-slate-800">
+
+    <!-- Mobile Wrapper Container -->
+    <div id="app-container" class="w-full max-w-md h-screen md:h-[90vh] md:rounded-3xl bg-emerald-50 shadow-2xl flex flex-col overflow-hidden relative border border-emerald-200">
+        
+        <!-- HEADER TOP PROGRESS -->
+        <header id="main-header" class="bg-emerald-600 text-white px-4 pt-4 pb-3 shadow-md flex-shrink-0 hidden">
+            <div class="flex justify-between items-center mb-2">
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide flex items-center gap-2">
+                        <i class="fa-solid fa-leaf text-emerald-300"></i> EcoChallenge 7 Ngày
+                    </h1>
+                    <p class="text-xs text-emerald-100" id="user-display-info">Xin chào, Người hùng</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="header-points" class="bg-emerald-700/80 px-2.5 py-1 rounded-full text-xs font-bold border border-emerald-400/30 flex items-center gap-1">
+                        <i class="fa-solid fa-star text-yellow-300"></i> <span class="score-val">0</span> đ
+                    </span>
+                    <button onclick="logout()" title="Đăng xuất" class="text-emerald-200 hover:text-white p-1 text-sm">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Progress Bar White -->
+            <div class="w-full bg-emerald-900/40 rounded-full h-2.5 overflow-hidden p-0.5 border border-emerald-500/30">
+                <div id="daily-progress-bar" class="bg-white h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between items-center mt-1 text-[11px] text-emerald-100">
+                <span id="progress-text">Tiến độ hôm nay: 0/10 nhiệm vụ</span>
+                <span id="current-date-label">--/--/----</span>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main id="main-content" class="flex-1 overflow-y-auto relative pb-20">
+            
+            <!-- AUTH SCREEN -->
+            <section id="screen-auth" class="p-6 flex flex-col justify-center items-center h-full">
+                <div class="w-full max-w-xs bg-white rounded-2xl shadow-lg p-6 border border-emerald-100">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-emerald-800">EcoGame Sống Xanh</h2>
+                        <p class="text-xs text-slate-500 mt-1">Đăng nhập hoặc tạo tài khoản mới để tham gia hành trình 7 ngày</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Tên tài khoản (Nickname)</label>
+                            <input type="text" id="auth-nickname" placeholder="Ví dụ: EcoHero_123" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Mật khẩu</label>
+                            <input type="password" id="auth-password" placeholder="••••••••" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+                        </div>
+                        <div id="auth-error" class="text-red-500 text-xs hidden text-center"></div>
+                        <button onclick="handleAuthSubmit()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i> Vào Game Ngay
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 1: MISSIONS -->
+            <section id="tab-missions" class="p-4 space-y-3 hidden">
+                <div class="bg-emerald-600 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-sm">Nhiệm Vụ Hôm Nay</h2>
+                        <p class="text-[11px] text-emerald-100">Bấm vào nhiệm vụ để tải ảnh/video chứng minh</p>
+                    </div>
+                    <span class="bg-white/20 text-xs font-semibold px-2.5 py-1 rounded-lg backdrop-blur-sm" id="mission-date-badge">Hôm nay</span>
+                </div>
+                <div id="missions-list" class="space-y-2.5">
+                    <!-- Rendered via JS -->
+                </div>
+            </section>
+
+            <!-- TAB 2: LEADERBOARD -->
+            <section id="tab-leaderboard" class="p-4 space-y-3 hidden">
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 rounded-2xl shadow-sm text-center">
+                    <h2 class="font-bold text-base mb-0.5"><i class="fa-solid fa-trophy text-yellow-300"></i> Bảng Vàng Sống Xanh</h2>
+                    <p class="text-xs text-emerald-100">Xếp hạng điểm tích lũy thời gian thực (Realtime)</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-hidden">
+                    <div id="leaderboard-list" class="divide-y divide-slate-100">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: PROFILE -->
+            <section id="tab-profile" class="p-4 space-y-4 hidden">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100 text-center space-y-3">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner border-2 border-emerald-300">
+                        <i class="fa-solid fa-user-ninja"></i>
+                    </div>
+                    <div>
+                        <h2 id="profile-username" class="font-bold text-lg text-slate-800">--</h2>
+                        <p id="profile-role" class="text-xs text-emerald-600 font-medium">Thành viên EcoGame</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                        <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
+                            <span class="block text-xs text-slate-500">Tổng điểm</span>
+                            <span id="profile-points" class="text-lg font-bold text-emerald-700 score-val">0</span>
+                        </div>
+                        <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
+                            <span class="block text-xs text-slate-500">Đã hoàn thành</span>
+                            <span id="profile-completed-count" class="text-lg font-bold text-emerald-700">0/10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-emerald-100 space-y-3">
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-slate-500">Đổi Tên Hiển Thị</h3>
+                    <div>
+                      <input type="text" id="new-display-name" placeholder="Nhập tên mới của bạn..." class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+                    </div>
+                    <button onclick="updateNickname()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow transition-all active:scale-95">
+                        Cập Nhật Tên
+                    </button>
+                </div>
+            </section>
+
+            <!-- TAB 4: ADMIN APPROVALS (Hidden by default) -->
+            <section id="tab-admin" class="p-4 space-y-3 hidden">
+                <div class="bg-amber-600 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-sm">Hàng Đợi Duyệt Bài (Admin)</h2>
+                        <p class="text-[11px] text-amber-100">Duyệt hoặc từ chối ảnh minh chứng từ người chơi</p>
+                    </div>
+                    <span id="pending-count-badge" class="bg-white/20 text-xs font-semibold px-2.5 py-1 rounded-lg">0 chờ</span>
+                </div>
+                <div id="admin-approvals-list" class="space-y-3">
+                    <!-- Rendered via JS -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <nav id="main-nav" class="absolute bottom-0 left-0 right-0 bg-white border-t border-emerald-100 px-2 py-2 flex justify-around items-center shadow-lg flex-shrink-0 z-10 hidden">
+            <button onclick="switchTab('missions')" id="nav-missions" class="flex flex-col items-center text-emerald-600 flex-1 py-1 transition-colors">
+                <i class="fa-solid fa-list-check text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">Nhiệm Vụ</span>
+            </button>
+            <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="flex flex-col items-center text-slate-400 flex-1 py-1 transition-colors">
+                <i class="fa-solid fa-ranking-star text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">Bảng Vàng</span>
+            </button>
+            <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400 flex-1 py-1 transition-colors">
+                <i class="fa-solid fa-user-circle text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">Hồ Sơ</span>
+            </button>
+            <button onclick="switchTab('admin')" id="nav-admin" class="flex flex-col items-center text-amber-500 flex-1 py-1 transition-colors hidden">
+                <i class="fa-solid fa-shield-halved text-lg"></i>
+                <span class="text-[10px] font-semibold mt-0.5">Duyệt Bài</span>
+            </button>
+        </nav>
+
+        <!-- SUBMISSION MODAL -->
+      <div id="submission-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white w-full max-w-xs rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="bg-emerald-600 text-white p-3.5 flex justify-between items-center">
+                    <h3 id="modal-mission-title" class="font-bold text-sm">Nộp Ảnh Minh Chứng</h3>
+                    <button onclick="closeModal()" class="text-white hover:text-emerald-200 text-sm">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div class="p-4 space-y-3 overflow-y-auto flex-1">
+                    <p id="modal-mission-desc" class="text-xs text-slate-600 bg-emerald-50 p-2.5 rounded-xl border border-emerald-100"></p>
+                    
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Tải ảnh/video minh chứng (Tối đa 600px)</label>
+                        <input type="file" id="proof-file-input" accept="image/*,video/*" capture="environment" onchange="handleFileSelected(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                    </div>
+
+                    <!-- Preview Container -->
+                    <div id="proof-preview-container" class="hidden text-center space-y-2">
+                        <div class="relative w-full h-40 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center">
+                            <img id="proof-img-preview" src="" alt="Preview" class="w-full h-full object-cover">
+                        </div>
+                        <p class="text-[10px] text-emerald-600 font-medium"><i class="fa-solid fa-circle-check"></i> Ảnh đã được nén tối ưu</p>
+                    </div>
+
+                    <div id="modal-error" class="text-red-500 text-xs hidden text-center"></div>
+                </div>
+                <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2">
+                    <button onclick="closeModal()" class="flex-1 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold">Hủy</button>
+                    <button onclick="submitProof()" id="btn-submit-proof" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow" disabled>Gửi Duyệt</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOM ALERT MODAL -->
+        <div id="custom-alert-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white w-full max-w-xs rounded-2xl p-5 text-center shadow-2xl space-y-3">
+              <div id="alert-icon" class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl mx-auto">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 id="alert-title" class="font-bold text-sm text-slate-800">Thông báo</h3>
+                <p id="alert-message" class="text-xs text-slate-600">Nội dung thông báo...</p>
+                <button onclick="closeCustomAlert()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold shadow">Đã hiểu</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables initialized from environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ecogame-app-id-7days';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyDummyKeyForDevelopmentWithoutFirebaseEnv",
+            authDomain: "dummy.firebaseapp.com",
+            projectId: "dummy-project",
+            storageBucket: "dummy.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        let app, db, auth;
+        let currentUser = null;
+        let currentCompressedDataUrl = null;
+        let activeMissionId = null;
+        let unsubscribeLeaderboard = null;
+        let unsubscribePending = null;
+        let unsubscribeUserDoc = null;
+
+        // 10 Missions definition
+        const MISSIONS_DEF = [
+            { id: 'm1', title: 'Chiến thần rút chốt', points: 20, desc: 'Rút 8 phích cắm điện khác nhau (video 10s)', type: 'video' },
+            { id: 'm2', title: 'Phong ấn lôi thần', points: 10, desc: 'Tắt 5 công tắc điện (video 10s)', type: 'video' },
+            { id: 'm3', title: 'Thực thần càng quét', points: 10, desc: 'Vét sạch đồ ăn (1 ảnh)', type: 'image' },
+            { id: 'm4', title: 'Thủy bình độc bản', points: 30, desc: 'Sd bình nc/ ly cá nhân để mua nc, ko sd ly nhựa có sẵn (1 ảnh)', type: 'image' },
+            { id: 'm5', title: 'Căng hải vào việc', points: 20, desc: 'Đi bộ thay vì ik xe máy (video 10s)', type: 'video' },
+            { id: 'm6', title: 'Túi/Balo vạn năng', points: 30, desc: 'Mang túi riêng/ balo để đựng đồ ms mua, ko sd túi nilon (1 ảnh, chụp ngay tại cửa hàng)', type: 'image' },
+          { id: 'm7', title: 'Khai mở phong môn', points: 10, desc: 'Mở 4 cánh cửa sổ khác nhau (ghép ảnh -> 1 ảnh)', type: 'image' },
+            { id: 'm8', title: 'Cấp thủy dưỡng mộc', points: 10, desc: 'Tưới cây (video 5s)', type: 'video' },
+            { id: 'm9', title: 'Thanh trừng rác thải', points: 10, desc: 'Vứt rác (1 ảnh)', type: 'image' },
+            { id: 'm10', title: 'Độ lại đồ phế', points: 50, desc: 'Tái chế 1 sp có tính ứng dụng thực tế (1 ảnh)', type: 'image' }
+        ];
+
+        function getTodayString() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        window.showAlert = function(title, msg, isError = false) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = msg;
+            const iconDiv = document.getElementById('alert-icon');
+            if(isError) {
+                iconDiv.className = "w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl mx-auto";
+                iconDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                iconDiv.className = "w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl mx-auto";
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+            }
+            document.getElementById('custom-alert-modal').classList.remove('hidden');
+        }
+
+        window.closeCustomAlert = function() {
+            document.getElementById('custom-alert-modal').classList.add('hidden');
+        }
+
+        // Initialize Firebase
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if (initialAuthToken) {
+                signInWithCustomToken(auth, initialAuthToken).catch(() => signInAnonymously(auth));
+            } else {
+                signInAnonymously(auth).catch((err) => console.log("Auth err:", err));
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    checkUserSessionData();
+                } else {
+                    currentUser = null;
+                    showAuthScreen();
+                }
+            });
+        } catch (e) {
+            console.error("Firebase init error:", e);
+            showAuthScreen();
+        }
+
+        function showAuthScreen() {
+            document.getElementById('screen-auth').classList.remove('hidden');
+          document.getElementById('main-header').classList.add('hidden');
+            document.getElementById('main-nav').classList.add('hidden');
+            hideAllTabs();
+        }
+
+        function showGameScreens() {
+            document.getElementById('screen-auth').classList.add('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById('main-nav').classList.remove('hidden');
+            document.getElementById('current-date-label').innerText = getTodayString();
+            document.getElementById('mission-date-badge').innerText = getTodayString();
+            switchTab('missions');
+        }
+
+        function hideAllTabs() {
+            document.getElementById('tab-missions').classList.add('hidden');
+            document.getElementById('tab-leaderboard').classList.add('hidden');
+            document.getElementById('tab-profile').classList.add('hidden');
+            document.getElementById('tab-admin').classList.add('hidden');
+        }
+
+        window.switchTab = function(tabName) {
+            hideAllTabs();
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            
+            // Update Nav styling
+            ['missions', 'leaderboard', 'profile', 'admin'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if(btn) {
+                    btn.classList.remove('text-emerald-600', 'text-amber-500');
+                    btn.classList.add('text-slate-400');
+                }
+            });
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            if(activeBtn) {
+                activeBtn.classList.remove('text-slate-400');
+                if(tabName === 'admin') activeBtn.classList.add('text-amber-500');
+                else activeBtn.classList.add('text-emerald-600');
+            }
+        }
+
+        // Custom Nickname Auth handling
+        window.handleAuthSubmit = async function() {
+            const nickname = document.getElementById('auth-nickname').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            const errEl = document.getElementById('auth-error');
+            errEl.classList.add('hidden');
+
+            if(!nickname || !password) {
+                errEl.innerText = "Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!";
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                if(!currentUser) {
+                    await signInAnonymously(auth);
+                }
+                const uid = auth.currentUser.uid;
+                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users_' + nickname);
+                const userSnap = await getDoc(userDocRef);
+
+                let isAdmin = (nickname === 'adminvippro1102' && password === 'adminvippro1102');
+
+                if(userSnap.exists()) {
+                  const data = userSnap.data();
+                    if(data.password !== password) {
+                        errEl.innerText = "Mật khẩu không chính xác!";
+                        errEl.classList.remove('hidden');
+                        return;
+                    }
+                    // Save local session
+                    localStorage.setItem('ecogame_nickname', nickname);
+                    localStorage.setItem('ecogame_uid', data.uid || uid);
+                } else {
+                    // Create new user profile
+                    const newUserObj = {
+                        uid: uid,
+                        nickname: nickname,
+                        password: password,
+                        totalPoints: 0,
+                        isAdmin: isAdmin,
+                        createdAt: new Date().toISOString()
+                    };
+                    await setDoc(userDocRef, newUserObj);
+                    localStorage.setItem('ecogame_nickname', nickname);
+                    localStorage.setItem('ecogame_uid', uid);
+                }
+
+                checkUserSessionData();
+            } catch (e) {
+                console.error(e);
+                errEl.innerText = "Lỗi kết nối database: " + e.message;
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        async function checkUserSessionData() {
+            const savedNickname = localStorage.getItem('ecogame_nickname');
+            if(!savedNickname) {
+                showAuthScreen();
+                return;
+            }
+
+            try {
+                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users_' + savedNickname);
+                const snap = await getDoc(userDocRef);
+                if(snap.exists()) {
+                    const userData = snap.data();
+                    window.appUserData = userData;
+                    window.appUserNickname = savedNickname;
+
+                    // Update UI info
+                    document.getElementById('user-display-info').innerText = `Nick: ${savedNickname}`;
+                    document.getElementById('profile-username').innerText = savedNickname;
+                    document.querySelectorAll('.score-val').forEach(el => el.innerText = userData.totalPoints || 0);
+
+                    // Check Admin
+                    if(userData.isAdmin || savedNickname === 'adminvippro1102') {
+                        document.getElementById('nav-admin').classList.remove('hidden');
+                        document.getElementById('profile-role').innerText = "Quản Trị Viên (Admin)";
+                        listenForPendingApprovals();
+                    } else {
+                        document.getElementById('nav-admin').classList.add('hidden');
+                        document.getElementById('profile-role').innerText = "Thành viên EcoGame";
+                    }
+
+                    showGameScreens();
+                    setupRealtimeListeners();
+                  loadDailyMissionsState();
+                } else {
+                    localStorage.removeItem('ecogame_nickname');
+                    showAuthScreen();
+                }
+            } catch(e) {
+                console.error("Session check error:", e);
+                showAuthScreen();
+            }
+        }
+
+        window.logout = function() {
+            localStorage.removeItem('ecogame_nickname');
+            if(unsubscribeLeaderboard) unsubscribeLeaderboard();
+            if(unsubscribePending) unsubscribePending();
+            if(unsubscribeUserDoc) unsubscribeUserDoc();
+            showAuthScreen();
+        }
+
+        // Setup real-time listeners for Missions & Leaderboard
+        function setupRealtimeListeners() {
+            const nickname = window.appUserNickname;
+            if(!nickname) return;
+
+            // Listen to User state (points changes)
+            const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users_' + nickname);
+            unsubscribeUserDoc = onSnapshot(userDocRef, (docSnap) => {
+                if(docSnap.exists()) {
+                    const data = docSnap.data();
+                    window.appUserData = data;
+                    document.querySelectorAll('.score-val').forEach(el => el.innerText = data.totalPoints || 0);
+                }
+            }, (err) => console.log("User doc listener err:", err));
+
+            // Listen to Leaderboard
+            const lbColRef = collection(db, 'artifacts', appId, 'public', 'data');
+            unsubscribeLeaderboard = onSnapshot(lbColRef, (snapshot) => {
+                let usersList = [];
+                snapshot.forEach(d => {
+                    if(d.id.startsWith('users_')) {
+                        usersList.push(d.data());
+                    }
+                });
+                usersList.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+                renderLeaderboard(usersList);
+            }, (err) => console.log("Leaderboard err:", err));
+        }
+
+        // Daily Missions state management with getTodayString()
+        async function loadDailyMissionsState() {
+            const todayStr = getTodayString();
+            const nickname = window.appUserNickname;
+            const progressDocRef = doc(db, 'artifacts', appId, 'public', 'data', `progress_${nickname}_${todayStr}`);
+            
+            try {
+                const snap = await getDoc(progressDocRef);
+                let missionStates = {}; // {missionId: status} -> status: 'pending', 'approved', 'rejected'
+                if(snap.exists()) {
+                    missionStates = snap.data().missions || {};
+                }
+                renderMissionsUI(missionStates);
+            } catch (e) {
+                console.error("Load progress error:", e);
+                renderMissionsUI({});
+            }
+        }
+
+        function renderMissionsUI(states) {
+            const listEl = document.getElementById('missions-list');
+          listEl.innerHTML = '';
+            
+            let completedCount = 0;
+
+            MISSIONS_DEF.forEach(m => {
+                const status = states[m.id]; // undefined, 'pending', 'approved', 'rejected'
+                let statusBadge = '';
+                let cardBorder = 'border-emerald-100 bg-white';
+                let btnActionHtml = `<button onclick="openSubmissionModal('${m.id}', '${m.title}', '${m.desc}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow transition-all active:scale-95 flex items-center gap-1"><i class="fa-solid fa-upload"></i> Nộp ảnh</button>`;
+
+                if(status === 'pending') {
+                    statusBadge = `<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-medium border border-amber-200">⏳ Chờ duyệt</span>`;
+                    cardBorder = 'border-amber-200 bg-amber-50/40';
+                    btnActionHtml = `<span class="text-xs text-amber-600 font-medium italic">Đang chờ BTC duyệt</span>`;
+                } else if(status === 'approved') {
+                    statusBadge = `<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-medium border border-emerald-200">✅ Đã duyệt (+${m.points}đ)</span>`;
+                    cardBorder = 'border-emerald-200 bg-emerald-50/60';
+                    btnActionHtml = `<span class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-check"></i> Hoàn thành</span>`;
+                    completedCount++;
+                } else if(status === 'rejected') {
+                    statusBadge = `<span class="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full font-medium border border-red-200">❌ Bị từ chối</span>`;
+                    cardBorder = 'border-red-200 bg-red-50/40';
+                    btnActionHtml = `<button onclick="openSubmissionModal('${m.id}', '${m.title}', '${m.desc}')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold shadow transition-all active:scale-95 flex items-center gap-1"><i class="fa-solid fa-rotate-right"></i> Làm lại</button>`;
+                }
+
+                const itemHtml = `
+                    <div class="p-3.5 rounded-2xl border ${cardBorder} shadow-sm flex flex-col gap-2 transition-all">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-xs text-slate-800">${m.title}</h3>
+                                    <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md">+${m.points}đ</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-0.5">${m.desc}</p>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-100/80">
+                            <span class="text-[10px] text-slate-400"><i class="fa-solid fa-clock"></i> Hàng ngày</span>
+                            <div>${btnActionHtml}</div>
+                        </div>
+                    </div>
+                `;
+                listEl.innerHTML += itemHtml;
+            });
+
+            // Update progress bar
+            const percent = (completedCount / MISSIONS_DEF.length) * 100;
+            document.getElementById('daily-progress-bar').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `Tiến độ hôm nay: ${completedCount}/10 nhiệm vụ`;
+            document.getElementById('profile-completed-count').innerText = `${completedCount}/10`;
+        }
+
+        // Modal Handler for Uploading Proof
+        window.openSubmissionModal = function(missionId, title, desc) {
+            activeMissionId = missionId;
+            document.getElementById('modal-mission-title').innerText = title;
+            document.getElementById('modal-mission-desc').innerText = desc;
+            document.getElementById('proof-file-input').value = '';
+            document.getElementById('proof-preview-container').classList.add('hidden');
+            document.getElementById('btn-submit-proof').disabled = true;
+            document.getElementById('modal-error').classList.add('hidden');
+            currentCompressedDataUrl = null;
+            document.getElementById('submission-modal').classList.remove('hidden');
+        }
+
+        window.closeModal = function() {
+            document.getElementById('submission-modal').classList.add('hidden');
+        }
+
+        // Canvas Compression to max 600px JPEG
+        window.handleFileSelected = function(event) {
+            const file = event.target.files[0];
+            const errEl = document.getElementById('modal-error');
+            errEl.classList.add('hidden');
+
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 600;
+
+                    if (width > height) {
+                        if (width > maxDim) {
+                            height *= maxDim / width;
+                            width = maxDim;
+                        }
+                    } else {
+                        if (height > maxDim) {
+                            width *= maxDim / height;
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                  canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG 0.8 quality
+                    currentCompressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    document.getElementById('proof-img-preview').src = currentCompressedDataUrl;
+                    document.getElementById('proof-preview-container').classList.remove('hidden');
+                    document.getElementById('btn-submit-proof').disabled = false;
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // Submit proof to separate "pending_approvals" queue
+        window.submitProof = async function() {
+            if(!currentCompressedDataUrl || !activeMissionId) return;
+
+            const nickname = window.appUserNickname;
+            const todayStr = getTodayString();
+            const missionObj = MISSIONS_DEF.find(m => m.id === activeMissionId);
+
+            const pendingId = `${nickname}_${todayStr}_${activeMissionId}`;
+            const pendingDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'pending_' + pendingId);
+
+            const progressDocRef = doc(db, 'artifacts', appId, 'public', 'data', `progress_${nickname}_${todayStr}`);
+
+            try {
+                // 1. Save to pending approvals queue collection
+                await setDoc(pendingDocRef, {
+                    pendingId: pendingId,
+                    nickname: nickname,
+                    uid: currentUser.uid,
+                    missionId: activeMissionId,
+                    missionTitle: missionObj.title,
+                    points: missionObj.points,
+                    date: todayStr,
+                    imageUrl: currentCompressedDataUrl,
+                    status: 'pending',
+                    submittedAt: new Date().toISOString()
+                });
+
+                // 2. Update user daily progress state to 'pending'
+                const progressSnap = await getDoc(progressDocRef);
+                let missionsState = progressSnap.exists() ? (progressSnap.data().missions || {}) : {};
+                missionsState[activeMissionId] = 'pending';
+
+                await setDoc(progressDocRef, {
+                    nickname: nickname,
+                    date: todayStr,
+                    missions: missionsState
+                }, { merge: true });
+
+                closeModal();
+                showAlert("Thành công!", "Nhiệm vụ đã được gửi lên Ban Tổ Chức chờ duyệt!");
+                loadDailyMissionsState();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('modal-error').innerText = "Lỗi gửi minh chứng: " + e.message;
+                document.getElementById('modal-error').classList.remove('hidden');
+            }
+        }
+
+        // Render Leaderboard
+      function renderLeaderboard(usersList) {
+            const listEl = document.getElementById('leaderboard-list');
+            listEl.innerHTML = '';
+
+            if(usersList.length === 0) {
+                listEl.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Chưa có người chơi nào trên bảng vàng.</div>`;
+                return;
+            }
+
+            usersList.forEach((u, index) => {
+                let badgeColor = "bg-slate-100 text-slate-600";
+                if(index === 0) badgeColor = "bg-yellow-100 text-yellow-700 border border-yellow-300 font-bold";
+                else if(index === 1) badgeColor = "bg-slate-200 text-slate-700 font-bold";
+                else if(index === 2) badgeColor = "bg-amber-100 text-amber-800 font-bold";
+
+                const isCurrent = (u.nickname === window.appUserNickname);
+
+                listEl.innerHTML += `
+                    <div class="p-3 flex items-center justify-between ${isCurrent ? 'bg-emerald-50/80' : ''}">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-full ${badgeColor} flex items-center justify-center text-xs">
+                                ${index + 1}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-800">${u.nickname} ${isCurrent ? '(Bạn)' : ''}</h4>
+                                <p class="text-[10px] text-slate-400">Thành viên EcoGame</p>
+                            </div>
+                        </div>
+                        <div class="bg-emerald-100/70 px-2.5 py-1 rounded-xl border border-emerald-200/60 text-emerald-800 text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-star text-yellow-500"></i> ${u.totalPoints || 0} đ
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Update Nickname feature
+        window.updateNickname = async function() {
+            const newName = document.getElementById('new-display-name').value.trim();
+            if(!newName) {
+                showAlert("Lỗi", "Vui lòng nhập tên hiển thị mới!", true);
+                return;
+            }
+
+            const oldNickname = window.appUserNickname;
+            if(newName === oldNickname) {
+                showAlert("Thông báo", "Tên mới trùng với tên hiện tại.");
+                return;
+            }
+
+            try {
+                // Check if new nickname exists
+                const newDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users_' + newName);
+                const snap = await getDoc(newDocRef);
+                if(snap.exists()) {
+                    showAlert("Lỗi", "Tên tài khoản này đã được sử dụng bởi người khác!", true);
+                    return;
+                }
+
+                // Copy data to new doc and delete old doc
+          const oldDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users_' + oldNickname);
+                const oldSnap = await getDoc(oldDocRef);
+                const userData = oldSnap.data();
+                userData.nickname = newName;
+
+                await setDoc(newDocRef, userData);
+                await deleteDoc(oldDocRef);
+
+                localStorage.setItem('ecogame_nickname', newName);
+                window.appUserNickname = newName;
+                document.getElementById('user-display-info').innerText = `Nick: ${newName}`;
+                document.getElementById('profile-username').innerText = newName;
+                document.getElementById('new-display-name').value = '';
+
+                showAlert("Thành công!", "Đã cập nhật tên hiển thị thành công!");
+                setupRealtimeListeners();
+                loadDailyMissionsState();
+            } catch (e) {
+                console.error(e);
+                showAlert("Lỗi", "Không thể đổi tên: " + e.message, true);
+            }
+        }
+
+        // Admin Tab: Listen and approve/reject pending approvals queue
+        function listenForPendingApprovals() {
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data');
+            unsubscribePending = onSnapshot(colRef, (snapshot) => {
+                let pendingList = [];
+                snapshot.forEach(d => {
+                    if(d.id.startsWith('pending_')) {
+                        const data = d.data();
+                        if(data.status === 'pending') {
+                            pendingList.push({ id: d.id, ...data });
+                        }
+                    }
+                });
+
+                document.getElementById('pending-count-badge').innerText = `${pendingList.length} chờ`;
+                renderAdminApprovals(pendingList);
+            }, (err) => console.log("Admin pending err:", err));
+        }
+
+        function renderAdminApprovals(list) {
+            const container = document.getElementById('admin-approvals-list');
+            container.innerHTML = '';
+
+            if(list.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">Hiện không có nhiệm vụ nào cần duyệt.</div>`;
+                return;
+            }
+
+            list.forEach(item => {
+                container.innerHTML += `
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-amber-200 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-800"><i class="fa-solid fa-user text-emerald-600"></i> ${item.nickname}</span>
+                            <span class="bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded">${item.points}đ</span>
+                        </div>
+                        <div class="text-xs text-slate-600 font-medium bg-slate-50 p-2 rounded-xl">
+                            Nhiệm vụ: <span class="text-emerald-700 font-bold">${item.missionTitle}</span> (${item.date})
+                        </div>
+                        <div class="w-full h-40 bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
+                            <img src="${item.imageUrl}" alt="Proof" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex gap-2 pt-1">
+                            <button onclick="adminReviewAction('${item.id}', '${item.nickname}', '${item.missionId}', '${item.date}', ${item.points}, 'rejected')" class="flex-1 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl text-xs font-semibold">
+                                <i class="fa-solid fa-xmark"></i> Từ chối
+                            </button>
+                            <button onclick="adminReviewAction('${item.id}', '${item.nickname}', '${item.missionId}', '${item.date}', ${item.points}, 'approved')" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow">
+                                <i class="fa-solid fa-check"></i> Duyệt (+${item.points}đ)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.adminReviewAction = async function(pendingId, nickname, missionId, dateStr, points, actionStatus) {
+            try {
+                const pendingDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'pending_' + pendingId);
+                const progressDocRef = doc(db, 'artifacts', appId, 'public', 'data', `progress_${nickname}_${dateStr}`);
+                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users_' + nickname);
+
+                // 1. Update progress doc
+                const progressSnap = await getDoc(progressDocRef);
+                if(progressSnap.exists()) {
+                    let data = progressSnap.data();
+                    if(data.missions) {
+                        data.missions[missionId] = actionStatus;
+                        await setDoc(progressDocRef, data);
+                    }
+                }
+
+                // 2. If approved, add points to user totalPoints
+                if(actionStatus === 'approved') {
+                    const userSnap = await getDoc(userDocRef);
+                    if(userSnap.exists()) {
+                        let userData = userSnap.data();
+                        let currentPts = userData.totalPoints || 0;
+                        await updateDoc(userDocRef, {
+                            totalPoints: currentPts + points
+                        });
+                    }
+                }
+
+                // 3. Remove pending approval doc to keep database clean and fast
+                await deleteDoc(pendingDocRef);
+              showAlert("Thành công", actionStatus === 'approved' ? "Đã duyệt bài và cộng điểm cho người chơi!" : "Đã từ chối bài nộp.");
+            } catch (e) {
+                console.error(e);
+                showAlert("Lỗi", "Không thể thực hiện thao tác: " + e.message, true);
+            }
+        }
+
+    </script>
+</body>
+</html>
+```
